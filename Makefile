@@ -8,6 +8,7 @@ input/2016/.sentinel:
 	curl http://download.cms.gov/marketplace-puf/2016/network-puf.zip -o input/2016/network-puf.zip
 	curl http://download.cms.gov/marketplace-puf/2016/plan-id-crosswalk-puf.zip -o input/2016/plan-id-crosswalk-puf.zip
 	curl http://download.cms.gov/marketplace-puf/2016/machine-readable-url-puf.zip -o input/2016/machine-readable-url-puf.zip
+	cd input/2016; unzip \*.zip
 	touch input/2016/.sentinel
 
 input/2015/.sentinel:
@@ -19,6 +20,7 @@ input/2015/.sentinel:
 	curl http://download.cms.gov/marketplace-puf/service-area-puf.zip -o input/2015/service-area-puf.zip
 	curl http://download.cms.gov/marketplace-puf/network-puf.zip -o input/2015/network-puf.zip
 	curl http://download.cms.gov/marketplace-puf/plan-id-crosswalk-puf.zip -o input/2015/plan-id-crosswalk-puf.zip
+	cd input/2015; unzip \*.zip
 	touch input/2015/.sentinel
 
 input/2014/.sentinel:
@@ -29,22 +31,55 @@ input/2014/.sentinel:
 	curl http://download.cms.gov/marketplace-puf/2014/business-rules-puf.zip -o input/2014/business-rules-puf.zip
 	curl http://download.cms.gov/marketplace-puf/2014/service-area-puf.zip -o input/2014/service-area-puf.zip
 	curl http://download.cms.gov/marketplace-puf/2014/network-puf.zip -o input/2014/network-puf.zip
-	curl http://download.cms.gov/marketplace-puf/2014/plan-id-crosswalk-puf.zip -o input/2014/plan-id-crosswalk-puf.zip
+	cd input/2014; unzip \*.zip
 	touch input/2014/.sentinel
 
 input: input/2016/.sentinel input/2015/.sentinel input/2014/.sentinel 
 
-output/Reviews.csv: input/Reviews.txt
+process:
+	mkdir -p working
+	mkdir -p output
+	python src/process.py
+
+output/Reviews.csv:
 	mkdir -p working
 	mkdir -p output
 	python src/process.py
 csv: output/Reviews.csv
 
-working/noHeader/Reviews.csv: output/Reviews.csv
+working/noHeader/BenefitsCostSharing.csv: output/BenefitsCostSharing.csv
 	mkdir -p working/noHeader
 	tail +2 $^ > $@
 
-output/database.sqlite: working/noHeader/Reviews.csv
+working/noHeader/BusinessRules.csv: output/BusinessRules.csv
+	mkdir -p working/noHeader
+	tail +2 $^ > $@
+
+working/noHeader/Crosswalk2015.csv: output/Crosswalk2015.csv
+	mkdir -p working/noHeader
+	tail +2 $^ > $@
+
+working/noHeader/Crosswalk2016.csv: output/Crosswalk2016.csv
+	mkdir -p working/noHeader
+	tail +2 $^ > $@
+
+working/noHeader/Network.csv: output/Network.csv
+	mkdir -p working/noHeader
+	tail +2 $^ > $@
+
+working/noHeader/PlanAttributes.csv: output/PlanAttributes.csv
+	mkdir -p working/noHeader
+	tail +2 $^ > $@
+
+working/noHeader/Rate.csv: output/Rate.csv
+	mkdir -p working/noHeader
+	tail +2 $^ > $@
+
+working/noHeader/ServiceArea.csv: output/ServiceArea.csv
+	mkdir -p working/noHeader
+	tail +2 $^ > $@
+
+output/database.sqlite: working/noHeader/Crosswalk2015.csv working/noHeader/Crosswalk2016.csv working/noHeader/BenefitsCostSharing.csv working/noHeader/PlanAttributes.csv working/noHeader/Rate.csv working/noHeader/Network.csv working/noHeader/BusinessRules.csv working/noHeader/ServiceArea.csv
 	-rm output/database.sqlite
 	sqlite3 -echo $@ < working/import.sql
 db: output/database.sqlite
