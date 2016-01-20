@@ -36,16 +36,19 @@ input/2014/.sentinel:
 
 input: input/2016/.sentinel input/2015/.sentinel input/2014/.sentinel 
 
-process:
+output/BenefitsCostSharing.csv: input/2016/.sentinel input/2015/.sentinel input/2014/.sentinel
 	mkdir -p working
 	mkdir -p output
 	python src/process.py
-
-output/Reviews.csv:
-	mkdir -p working
-	mkdir -p output
-	python src/process.py
-csv: output/Reviews.csv
+output/BusinessRules.csv: output/BenefitsCostSharing.csv
+output/BusinessRules.csv: output/BenefitsCostSharing.csv
+output/Crosswalk2015.csv: output/BenefitsCostSharing.csv
+output/Crosswalk2016.csv: output/BenefitsCostSharing.csv
+output/Network.csv: output/BenefitsCostSharing.csv
+output/PlanAttributes.csv: output/BenefitsCostSharing.csv
+output/Rate.csv: output/BenefitsCostSharing.csv
+output/ServiceArea.csv: output/BenefitsCostSharing.csv
+csv: output/BenefitsCostSharing.csv
 
 working/noHeader/BenefitsCostSharing.csv: output/BenefitsCostSharing.csv
 	mkdir -p working/noHeader
