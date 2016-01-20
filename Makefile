@@ -84,22 +84,38 @@ output/database.sqlite: working/noHeader/Crosswalk2015.csv working/noHeader/Cros
 	sqlite3 -echo $@ < working/import.sql
 db: output/database.sqlite
 
-output/hashes.txt: output/database.sqlite
+output/raw/.sentinel:
+	mkdir -p output/raw
+	cp -r input/2014 output/raw/2014
+	cp -r input/2015 output/raw/2015
+	cp -r input/2016 output/raw/2016
+	rm output/raw/2014/*.zip
+	rm output/raw/2015/*.zip
+	rm output/raw/2016/*.zip
+	touch output/raw/.sentinel
+output-raw: output/raw/.sentinel
+
+output/hashes.txt: output/database.sqlite output/raw/.sentinel
 	-rm output/hashes.txt
 	echo "Current git commit:" >> output/hashes.txt
 	git rev-parse HEAD >> output/hashes.txt
 	echo "\nCurrent input/ouput md5 hashes:" >> output/hashes.txt
 	md5 output/*.csv >> output/hashes.txt
 	md5 output/*.sqlite >> output/hashes.txt
-	md5 input/* >> output/hashes.txt
+	md5 output/raw/2014/* >> output/hashes.txt
+	md5 output/raw/2015/* >> output/hashes.txt
+	md5 output/raw/2016/* >> output/hashes.txt
+	md5 input/2014/* >> output/hashes.txt
+	md5 input/2015/* >> output/hashes.txt
+	md5 input/2016/* >> output/hashes.txt
 hashes: output/hashes.txt
 
-release: output/database.sqlite output/hashes.txt
+release: output/hashes.txt
 	cp -r output health-insurance-marketplace
 	zip -r -X output/health-insurance-marketplace-release-`date -u +'%Y-%m-%d-%H-%M-%S'` health-insurance-marketplace/*
 	rm -rf health-insurance-marketplace
 
-all: csv db hashes release
+all: csv db hashes release output-raw
 
 clean:
 	rm -rf working
