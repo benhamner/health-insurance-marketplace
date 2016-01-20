@@ -89,6 +89,7 @@ for table in tables:
         data = pd.read_csv(tables[table]["data"], encoding="latin1", low_memory=False)
 
     data.to_csv("output/%s.csv" % table, index=False)
+    data = read_csv("output/%s.csv" % table, low_memory=False)
 
     sql += """CREATE TABLE %s (
 %s);
